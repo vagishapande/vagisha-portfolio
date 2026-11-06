@@ -863,7 +863,13 @@ function Contact() {
             <SocialIcon href="https://github.com/vagishapande" label="GitHub">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .9a11.2 11.2 0 0 0-3.54 21.83c.56.1.76-.24.76-.54v-2.1c-3.1.67-3.75-1.32-3.75-1.32-.5-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.67.08-.67 1.12.08 1.71 1.15 1.71 1.15 1 1.7 2.62 1.2 3.26.92.1-.72.39-1.2.71-1.48-2.48-.28-5.09-1.24-5.09-5.52 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.42.11-2.96 0 0 .94-.3 3.08 1.15a10.7 10.7 0 0 1 5.6 0c2.13-1.45 3.07-1.15 3.07-1.15.62 1.54.23 2.68.12 2.96.72.78 1.15 1.78 1.15 3 0 4.29-2.62 5.24-5.12 5.51.4.35.76 1.03.76 2.08v3.06c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .9Z" /></svg>
             </SocialIcon>
-            <a className="social-icon social-icon--linkedin" href="#contact" aria-label="LinkedIn">
+            <a
+              className="social-icon social-icon--linkedin"
+              href="https://www.linkedin.com/in/vagisha-pande/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="LinkedIn"
+            >
               in
             </a>
             <a className="social-icon social-icon--portfolio" href="#home" aria-label="Portfolio">
