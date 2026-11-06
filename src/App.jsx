@@ -916,7 +916,7 @@ function ContactDialog({ onClose, closeButtonRef }) {
           name: formData.get("name"),
           email: formData.get("email"),
           _replyto: formData.get("email"),
-          _subject: formData.get("subject"),
+          _subject: "Portfolio contact message",
           message: formData.get("message"),
         }),
       });
@@ -987,10 +987,6 @@ function ContactDialog({ onClose, closeButtonRef }) {
           <label>
             Your email
             <input name="email" type="email" autoComplete="email" maxLength={254} required />
-          </label>
-          <label>
-            What would you like to ask?
-            <input name="subject" type="text" maxLength={120} required />
           </label>
           <label>
             Your message
