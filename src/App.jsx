@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 
 import profilePhoto from "../images/profilephoto.png";
@@ -854,7 +854,138 @@ function SocialIcon({ href, label, children }) {
   );
 }
 
+function ContactDialog({ onClose, closeButtonRef }) {
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus({ preventScroll: true });
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key === "Tab") {
+        const focusableElements = dialogRef.current?.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled])',
+        );
+        if (!focusableElements?.length) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
+    };
+  }, [closeButtonRef, onClose]);
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = String(formData.get("name"));
+    const email = String(formData.get("email"));
+    const subject = String(formData.get("subject"));
+    const message = String(formData.get("message"));
+    const body = `Name: ${name}\nEmail: ${email}\n\n${message}`;
+    const mailto = `mailto:vagishapande002@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    window.location.assign(mailto);
+  }
+
+  return createPortal(
+    <div
+      className="project-dialog-backdrop contact-dialog-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        className="contact-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="contact-dialog-title"
+        aria-describedby="contact-dialog-description"
+        ref={dialogRef}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="contact-dialog__header">
+          <div>
+            <p className="contact-dialog__eyebrow">LET’S CONNECT</p>
+            <h2 id="contact-dialog-title">Send me a message</h2>
+          </div>
+          <button
+            ref={closeButtonRef}
+            className="project-dialog__close"
+            type="button"
+            onClick={onClose}
+            aria-label="Close contact form"
+          >
+            ×
+          </button>
+        </div>
+        <p className="contact-dialog__description" id="contact-dialog-description">
+          Fill in the form and your email app will open with the message addressed to me.
+        </p>
+        <form className="contact-form" onSubmit={handleSubmit}>
+          <label>
+            Your name
+            <input name="name" type="text" autoComplete="name" maxLength={100} required />
+          </label>
+          <label>
+            Your email
+            <input name="email" type="email" autoComplete="email" maxLength={254} required />
+          </label>
+          <label>
+            What would you like to ask?
+            <input name="subject" type="text" maxLength={120} required />
+          </label>
+          <label>
+            Your message
+            <textarea name="message" rows={5} maxLength={5000} required />
+          </label>
+          <button className="pill-button contact-form__submit" type="submit">
+            Open email draft <span aria-hidden="true">↗</span>
+          </button>
+        </form>
+        <div className="contact-dialog__links" aria-label="Contact links">
+          <a href="https://github.com/vagishapande" target="_blank" rel="noopener noreferrer">
+            GitHub <span aria-hidden="true">↗</span>
+          </a>
+          <a href="https://www.linkedin.com/in/vagisha-pande/" target="_blank" rel="noopener noreferrer">
+            LinkedIn <span aria-hidden="true">↗</span>
+          </a>
+          <a href="mailto:vagishapande002@gmail.com">
+            vagishapande002@gmail.com
+          </a>
+        </div>
+      </section>
+    </div>,
+    document.body,
+  );
+}
+
 function Contact() {
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const closeButtonRef = useRef(null);
+  const closeContact = useCallback(() => setIsContactOpen(false), []);
+
   return (
     <>
       <section className="contact" id="contact">
@@ -872,8 +1003,12 @@ function Contact() {
             >
               in
             </a>
-            <a className="social-icon social-icon--portfolio" href="#home" aria-label="Portfolio">
-              ↗
+            <a
+              className="social-icon social-icon--portfolio"
+              href="mailto:vagishapande002@gmail.com"
+              aria-label="Email Vagisha"
+            >
+              @
             </a>
           </div>
           <p className="contact__message">
@@ -888,9 +1023,14 @@ function Contact() {
             <Sticker className="contact__sticker contact__sticker--second">AI/ML</Sticker>
             <Sticker className="contact__sticker contact__sticker--third">Problem<br />Solving</Sticker>
           </div>
-          <a className="pill-button contact__button" href="https://github.com/vagishapande">
+          <button
+            className="pill-button contact__button"
+            type="button"
+            onClick={() => setIsContactOpen(true)}
+            aria-haspopup="dialog"
+          >
             Let&apos;s chat
-          </a>
+          </button>
         </div>
       </section>
       <footer className="site-footer">
@@ -904,6 +1044,9 @@ function Contact() {
           <a href="#contact">CONTACT</a>
         </nav>
       </footer>
+      {isContactOpen && (
+        <ContactDialog onClose={closeContact} closeButtonRef={closeButtonRef} />
+      )}
     </>
   );
 }
