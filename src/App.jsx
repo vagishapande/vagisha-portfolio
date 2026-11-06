@@ -856,6 +856,8 @@ function SocialIcon({ href, label, children }) {
 
 function ContactDialog({ onClose, closeButtonRef }) {
   const dialogRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState(null);
 
   useEffect(() => {
     const previouslyFocused = document.activeElement;
@@ -896,17 +898,51 @@ function ContactDialog({ onClose, closeButtonRef }) {
     };
   }, [closeButtonRef, onClose]);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const name = String(formData.get("name"));
-    const email = String(formData.get("email"));
-    const subject = String(formData.get("subject"));
-    const message = String(formData.get("message"));
-    const body = `Name: ${name}\nEmail: ${email}\n\n${message}`;
-    const mailto = `mailto:vagishapande002@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    setIsSubmitting(true);
+    setSubmissionStatus(null);
 
-    window.location.assign(mailto);
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/vagishapande002@gmail.com", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.get("name"),
+          email: formData.get("email"),
+          _replyto: formData.get("email"),
+          _subject: formData.get("subject"),
+          message: formData.get("message"),
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || (result.success !== true && result.success !== "true")) {
+        throw new Error(result.message || "Your message could not be sent. Please try again.");
+      }
+
+      form.reset();
+      setSubmissionStatus({
+        type: "success",
+        message:
+          "Your message was submitted. First-time setup may require Vagisha to confirm the activation email before delivery.",
+      });
+    } catch (error) {
+      setSubmissionStatus({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Your message could not be sent. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return createPortal(
@@ -941,7 +977,7 @@ function ContactDialog({ onClose, closeButtonRef }) {
           </button>
         </div>
         <p className="contact-dialog__description" id="contact-dialog-description">
-          Fill in the form and your email app will open with the message addressed to me.
+          Send a message directly to my inbox. I’ll get back to you as soon as I can.
         </p>
         <form className="contact-form" onSubmit={handleSubmit}>
           <label>
@@ -960,9 +996,17 @@ function ContactDialog({ onClose, closeButtonRef }) {
             Your message
             <textarea name="message" rows={5} maxLength={5000} required />
           </label>
-          <button className="pill-button contact-form__submit" type="submit">
-            Open email draft <span aria-hidden="true">↗</span>
+          <button className="pill-button contact-form__submit" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Sending..." : "Submit message"}
           </button>
+          {submissionStatus && (
+            <p
+              className={`contact-form__status contact-form__status--${submissionStatus.type}`}
+              role={submissionStatus.type === "error" ? "alert" : "status"}
+            >
+              {submissionStatus.message}
+            </p>
+          )}
         </form>
         <div className="contact-dialog__links" aria-label="Contact links">
           <a href="https://github.com/vagishapande" target="_blank" rel="noopener noreferrer">
